@@ -7,7 +7,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
-
 const useragent = require('express-useragent');
 
 var app = express();
@@ -17,7 +16,6 @@ app.use(cors({
 }))
 
 var indexRouter = require('./routes/index');
-
 
 const port = 3000
 // view engine setup

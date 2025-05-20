@@ -12,7 +12,7 @@ const key = require("../config/appKey");
 router.post('/register', async (req, res) => {
     try {
 
-        const { username, password, email } = req.body;
+        const { username, password, email, profile_thumb } = req.body;
         if (!username || !password) {
             return res.status(400).json({ message: 'Username and password are required' });
         }
@@ -43,10 +43,10 @@ router.post('/register', async (req, res) => {
 
         const ua = req.useragent;
 
-        const queryParams = [username, hashedPassword, email, new Date(), new Date(), `${ua.platform}:${ua.browser}:${ua.version}:${ua.os}`, ip];
+        const queryParams = [username, hashedPassword, email, new Date(), new Date(), `${ua.platform}:${ua.browser}:${ua.version}:${ua.os}`, ip, profile_thumb];
 
-        const query = `INSERT INTO public."users"( username, password_hash,email,date_created,last_login,last_login_device,last_login_ip)
-         VALUES ($1,$2,$3,$4,$5,$6,$7);`
+        const query = `INSERT INTO public."users"(username, password_hash,email,date_created,last_login,last_login_device,last_login_ip,profile_thumb)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8);`
 
         const data = await client.query(query, queryParams)
 
@@ -74,7 +74,7 @@ router.post('/login', async (req, res) => {
         await client.connect()
 
         //const userFindQuery = `select id from public."User" where username = '${username}';`
-        const userFindQuery = `SELECT username,password FROM public."users" WHERE username = $1;`
+        const userFindQuery = `SELECT username,password_hash FROM public."users" WHERE username = $1;`
 
         const userFindParams = [username];
 
