@@ -6,12 +6,19 @@ var logger = require('morgan');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const authRoutes = require('./routes/auth');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const useragent = require('express-useragent');
 
 var app = express();
-app.use(cors());
+
+app.use(cors({
+    origin: '*'
+}))
+
+var indexRouter = require('./routes/index');
+
+
 const port = 3000
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,14 +29,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(useragent.express());
+app.set('trust proxy', true);
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next(createError(404));
+app.use((req, res, next) => {
+    const ip =
+        req.headers['x-forwarded-for']?.split(',').shift() || req.socket.remoteAddress;
+
+    const ua = req.useragent;
+
+    console.log('IP:', ip);
+    console.log('Device Info:', {
+        platform: ua.platform,
+        browser: ua.browser,
+        version: ua.version,
+        os: ua.os,
+        isMobile: ua.isMobile,
+        isDesktop: ua.isDesktop,
+    });
+    next();
 });
+
+app.use('/auth', authRoutes);
 
 // error handler
 app.use(function (err, req, res, next) {
@@ -42,6 +64,10 @@ app.use(function (err, req, res, next) {
     res.render('error');
 });
 
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+    next(createError(404));
+});
 
 
 const server = http.createServer(app);
@@ -61,7 +87,8 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => {
+server.listen(port, () => {
     console.log('Server listening on http://localhost:3000');
 });
+
 module.exports = app;
