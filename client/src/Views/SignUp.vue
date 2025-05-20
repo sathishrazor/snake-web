@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { backendUrl } from "./config";
+import { backendUrl } from "../config";
 export default {
   name: "SignUp",
   data() {

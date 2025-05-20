@@ -7,8 +7,8 @@
       <div class="login-form">
         <h2>Login</h2>
         <el-form :model="loginForm" :rules="rules" ref="loginFormRef" class="form">
-          <el-form-item label="Email">
-            <el-input v-model="loginForm.username" placeholder="Enter your email" />
+          <el-form-item label="Username">
+            <el-input v-model="loginForm.username" placeholder="Enter your username" />
           </el-form-item>
 
           <el-form-item label="Password">
@@ -45,8 +45,10 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute, useRouter } from 'vue-router'
-import { backendUrl } from "./config";
+import { backendUrl } from "../config";
+import { authState } from '../authState';
 const router = useRouter()
+
 
 const loginForm = ref({
   username: "",
@@ -79,12 +81,18 @@ const submitForm = () => {
 
       } else {
 
-        ElMessage.success(`Login successful!`)
+        ElNotification({
+          title: 'Success',
+          message: 'Login successful!',
+          duration: 2000,
+          type: 'success',
+        })
 
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        router.push('/dashboard');
+        console.log(data);
+        authState.login(data.token);
 
+        router.push('/dashboard');
 
       }
 

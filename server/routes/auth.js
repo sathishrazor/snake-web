@@ -87,7 +87,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Authentication failed' });
         }
         const user = userRes.rows[0];
-        const passwordMatch = await bcrypt.compare(password, user.password);
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
         if (!passwordMatch) {
             await client.end()
             return res.status(401).json({ error: 'Authentication failed' });
@@ -95,8 +95,6 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign({ userId: user.id }, key.secret, {
             expiresIn: '8h',
         });
-
-
 
         await client.end()
         res.status(200).json({ token });
