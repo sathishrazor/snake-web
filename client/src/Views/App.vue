@@ -8,6 +8,7 @@
     <el-menu-item index="5" v-if="authState.isAuthenticated" @click="logout">Logout</el-menu-item>
     <el-menu-item index="5" v-if="!authState.isAuthenticated" @click="logout">Login</el-menu-item>
     <el-menu-item index="6" v-if="!authState.isAuthenticated" @click="$router.push('/signup')">Sign Up</el-menu-item>
+    <el-menu-item index="5" v-if="authState.isAuthenticated" @click="$router.push('/settings')">Settings</el-menu-item>
 
   </el-menu>
   <main style="padding: 10px;">

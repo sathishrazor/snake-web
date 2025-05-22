@@ -5,16 +5,23 @@ import App from './Views/App.vue'
 
 import { createWebHistory, createRouter } from 'vue-router'
 
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+
 import HomeView from './Views/LandingPage.vue'
 import LoginView from './Views/Login.vue'
 import SignUp from './Views/SignUp.vue'
 import Dashboard from './Views/Dashboard.vue'
+import GameBoard from './Views/GameBoard.vue'
+
+
+
 
 const routes = [
     { path: '/', component: HomeView },
     { path: '/login', component: LoginView },
     { path: '/signup', component: SignUp },
-    { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } }
+    { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
+    { path: '/newgame', component: GameBoard, meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
@@ -32,6 +39,10 @@ router.beforeEach((to, from, next) => {
 });
 
 
-createApp(App).
-    use(router).
+var app = createApp(App)
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component)
+}
+
+app.use(router).
     mount('#app')

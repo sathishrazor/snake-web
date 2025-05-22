@@ -1,114 +1,103 @@
 <template>
-    <div aria-label="A complete example of page header">
-        <el-page-header @back="onBack">
-            <template #breadcrumb>
-                <el-breadcrumb separator="/">
-                    <el-breadcrumb-item :to="{ path: '/' }">
-                        Home
-                    </el-breadcrumb-item>
-                    <el-breadcrumb-item>
-                        <a href="/dashboard">Dashboard</a>
-                    </el-breadcrumb-item>
+    <div class="common-layout">
+        <el-container>
+            <el-header>Header</el-header>
+            <el-main>
 
-                </el-breadcrumb>
-            </template>
-            <template #content>
-                <div class="flex items-center">
-                    <el-avatar class="mr-3" :size="32"
-                        src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
-                    <span class="text-large font-600 mr-3"> Welcome </span>
-                    <span class="text-sm mr-2" style="color: var(--el-text-color-regular)">
-                        Sathish
-                    </span>
-                    <el-tag type="success">Online</el-tag>
-                </div>
-            </template>
 
-            <template #extra>
-                <div class="flex items-center">
-                    <el-button>Play</el-button>
-                    <el-button type="primary" class="ml-2">New Match</el-button>
-                </div>
-            </template>
+                <el-row :gutter="20">
+                    <el-col :span="18" :offset="3">
 
-            <el-row :gutter="16">
-                <el-col :span="8">
-                    <div class="statistic-card">
-                        <el-statistic :value="98500">
-                            <template #title>
-                                <div style="display: inline-flex; align-items: center">
-                                    Top Score
+                        <el-row :gutter="20" class="ep-bg-purple">
 
-                                </div>
-                            </template>
-                        </el-statistic>
-                        <div class="statistic-footer">
-                            <div class="footer-item">
-                                <span>than yesterday</span>
-                                <span class="green">
-                                    24%
+                            <el-col :span="3">
+
+                                <el-image :src="user.profile_thumb" fit="fill" />
+
+                            </el-col>
+
+                            <el-col :span="18">
+
+                                <el-row>
+                                    <el-col :span="24">
+                                        <h2 class="m-0">{{ user.username }}
+                                            <el-icon>
+                                                <Edit />
+                                            </el-icon>
+                                        </h2>
+
+
+                                    </el-col>
+
+                                    <el-col :span="24">
+                                        <p class="m-0">
+
+                                            <el-icon>
+                                                <Message />
+                                            </el-icon>
+
+                                            {{ user.email }}
+                                        </p>
+                                    </el-col>
+
+                                    <el-col :span="24">
+                                        <p class="m-0">
+                                            <el-icon>
+                                                <Monitor />
+                                            </el-icon>
+                                            {{ user.last_login_device }}
+                                        </p>
+                                    </el-col>
+
+
+                                    <el-col :span="24">
+                                        <p>Joined:{{ user.date_joined }}</p>
+                                    </el-col>
+
+                                </el-row>
+
+
+                            </el-col>
+
+                            <el-col :span="2">
+
+                                <el-button type="success" @click="$router.push('/newgame')">
+                                    New Game
+                                </el-button>
+
+
+                            </el-col>
+
+                            <el-col :span="1">
+                                <el-button type="primary" @click="handleAdd">
                                     <el-icon>
-                                        <CaretTop />
+                                        <Edit />
                                     </el-icon>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </el-col>
-                <el-col :span="8">
-                    <div class="statistic-card">
-                        <el-statistic :value="693700">
-                            <template #title>
-                                <div style="display: inline-flex; align-items: center">
-                                    Total Matches
+                                </el-button>
+                            </el-col>
+
+                        </el-row>
+
+                    </el-col>
+                </el-row>
+
+                <el-row :gutter="20">
+                    <el-col :span="18" :offset="3">
+
+                        <el-row :gutter="20">
+                            <el-col :span="8">
+                                <div class="grid-content bg-purple">
+                                    <el-statistic title="High Score" :value="user.high_score" />
                                 </div>
-                            </template>
-                        </el-statistic>
-                        <div class="statistic-footer">
-                            <div class="footer-item">
-                                <span>month on month</span>
-                                <span class="red">
-                                    12%
-                                    <el-icon>
-                                        <CaretBottom />
-                                    </el-icon>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </el-col>
-                <el-col :span="8">
-                    <div class="statistic-card">
-                        <el-statistic :value="72000" title="New transactions today">
-                            <template #title>
-                                <div style="display: inline-flex; align-items: center">
-                                    No of Followers
-                                </div>
-                            </template>
-                        </el-statistic>
-                        <div class="statistic-footer">
-                            <div class="footer-item">
-                                <span>than yesterday</span>
-                                <span class="green">
-                                    16%
-                                    <el-icon>
-                                        <CaretTop />
-                                    </el-icon>
-                                </span>
-                            </div>
-                            <div class="footer-item">
-                                <el-icon :size="14">
-                                    <ArrowRight />
-                                </el-icon>
-                            </div>
-                        </div>
-                    </div>
-                </el-col>
-            </el-row>
+                            </el-col>
 
+                        </el-row>
 
+                    </el-col>
+                </el-row>
 
-        </el-page-header>
+            </el-main>
+        </el-container>
     </div>
 
 </template>
@@ -116,81 +105,69 @@
 
 
 <style scoped>
+.m-0 {
+    margin: 0;
+}
+
+.p-0 {
+    padding: 0;
+}
+
+.p-10 {
+    padding: 10px;
+}
+
+.el-row {
+    margin-bottom: 20px;
+}
+
+.el-row:last-child {
+    margin-bottom: 0;
+}
+
+.el-col {
+    border-radius: 4px;
+}
+
+.grid-content {
+    border-radius: 4px;
+    min-height: 36px;
+}
+
 .el-statistic {
     --el-statistic-content-font-size: 28px;
 }
 
-.statistic-card {
-    height: 100%;
-    padding: 20px;
+.ep-bg-purple {
+    background-color: #deddff;
     border-radius: 4px;
-    background-color: var(--el-bg-color-overlay);
-}
-
-.statistic-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    font-size: 12px;
-    color: var(--el-text-color-regular);
-    margin-top: 16px;
-}
-
-.statistic-footer .footer-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.statistic-footer .footer-item span:last-child {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 4px;
-}
-
-.green {
-    color: var(--el-color-success);
-}
-
-.red {
-    color: var(--el-color-error);
+    padding: 20px;
 }
 </style>
 
 
 <script>
-import { fetchWithAuth } from '../fetchWithAuth.js';
-import {
-    ArrowRight,
-    CaretBottom,
-    CaretTop,
-    Warning,
-} from '@element-plus/icons-vue'
+
+import { authState } from '../authState';
+
+import moment from 'moment';
 
 export default {
     data() {
         return {
-            message: ''
+            message: '',
+            loading: true,
+            user: {}
         };
     },
     async mounted() {
         try {
-            const response = await fetchWithAuth('http://localhost:3000/api/dashboard', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to load dashboard data');
-            }
-            const data = await response.json();
 
-            console.log("data", data);
+            this.user = await authState.getUserInfo();
 
-            this.message = data.message || 'Welcome to your dashboard!';
+            this.user.date_joined = moment(this.user.date_created).format('MMMM Do YYYY');
+
+            this.loading = false;
 
 
 
