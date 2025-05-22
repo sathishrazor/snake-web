@@ -71,7 +71,7 @@ const io = new Server(server, {
 });
 
 
-var players = {};
+var players = [];
 
 // Game state
 let gameState = {
@@ -87,21 +87,17 @@ io.on('connection', (socket) => {
 
 
     socket.on('joingame', (data) => {
-        console.log(`Player ${socket.id} joined the game`);
 
         console.log("joining game data", data);
 
+        addOrUpdatePlayer(socket.id, data.userId);
+
+        console.table(players);
+
         // Initialize this player’s snake
-        gameState.snakes[data.userId] = {
-            body: [{ x: 320, y: 240 }],
-            dir: 'up', color: "#00FF00"
-        };
+        gameState.snakes[data.userId] = getRandomSnake();
     })
 
-
-
-    // Notify client of its own player ID, etc. (optional)
-    socket.emit('init', { playerId: socket.id });
 
     // Broadcast current state to the new player
     socket.emit('stateUpdate', gameState);
@@ -109,26 +105,33 @@ io.on('connection', (socket) => {
 
     // Handle player movement
     socket.on('move', (data) => {
+        console.log("move data", data);
+
         console.log(`Player ${data.userId} moved ${data.direction}`);
 
-        gameState.snakes[data.userId].dir = direction;
+        gameState.snakes[data.userId].setDirection(data.direction);
+        gameState.snakes[data.userId].update();
         io.emit('stateUpdate', gameState);
 
 
     });
 
+
     // When a player disconnects, remove their snake
     socket.on('disconnect', () => {
+
         delete gameState.snakes[socket.id];
+
     });
 
 });
 
-
+//100 hz -> game loop
 setInterval(() => {
-    updateGame(gameState);         // update snake positions, collisions, food, etc.
+    updateGame(gameState);
     io.emit('stateUpdate', gameState); // broadcast new state
-}, 100);
+}, 10);
+
 
 
 
@@ -136,64 +139,14 @@ function updateGame(state) {
     // Update each snake's position based on its direction
     for (const id in state.snakes) {
         const snake = state.snakes[id];
-        const head = snake.body[0];
-        let newHead = { x: head.x, y: head.y };
-        switch (snake.dir) {
-            case 'up': newHead.y -= 5; break;
-            case 'down': newHead.y += 5; break;
-            case 'left': newHead.x -= 5; break;
-            case 'right': newHead.x += 5; break;
-        }
-        // Add new head to the snake's body
-        snake.body.unshift(newHead);
-        // Remove the last segment of the snake's body
-        snake.body.pop();
-        // Check for collisions with food
-        if (newHead.x === state.food.x && newHead.y === state.food.y) {
-            // Grow the snake
-            snake.body.push({}); // Add an empty segment to grow the snake
-            // Respawn food at a random position
-            state.food.x = Math.floor(Math.random() * 640);
-            state.food.y = Math.floor(Math.random() * 480);
-        }
-        // Check for collisions with walls or itself
-        if (newHead.x < 0 || newHead.x > 640 || newHead.y < 0 || newHead.y > 480 ||
-            snake.body.slice(1).some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
-            // Reset the snake's position
-            snake.body = [{ x: 320, y: 240 }];
-        }
+        snake.update();
     }
-    // // Check for collisions between snakes
-    // const snakeIds = Object.keys(state.snakes);
-    // for (let i = 0; i < snakeIds.length; i++) {
-    //     const snakeA = state.snakes[snakeIds[i]];
-    //     for (let j = i + 1; j < snakeIds.length; j++) {
-    //         const snakeB = state.snakes[snakeIds[j]];
-    //         if (snakeA.body[0].x === snakeB.body[0].x && snakeA.body[0].y === snakeB.body[0].y) {
-    //             // Reset both snakes' positions
-    //             snakeA.body = [{ x: 320, y: 240 }];
-    //             snakeB.body = [{ x: 320, y: 240 }];
-    //         }
-    //     }
-    // }
-    // // Check for collisions with food
-    // for (const id in state.snakes) {
-    //     const snake = state.snakes[id];
-    //     const head = snake.body[0];
-    //     if (head.x === state.food.x && head.y === state.food.y) {
-    //         // Grow the snake
-    //         snake.body.push({}); // Add an empty segment to grow the snake
-    //         // Respawn food at a random position
-    //         state.food.x = Math.floor(Math.random() * 640);
-    //         state.food.y = Math.floor(Math.random() * 480);
-    //     }
-    // }
 
 }
 
 
 class Snake {
-    constructor({ x, y, color, length, radius, speed = 2 }) {
+    constructor({ x, y, color, length, radius, speed = 4 }) {
         this.color = color;
         this.radius = radius;
         this.speed = speed;
@@ -243,7 +196,52 @@ class Snake {
         while (this.body.length > this.segmentCount) {
             this.body.pop();
         }
+
+
+        // // Check for collisions with food
+        // if (this.checkCollisionWithFood()) {
+        //     this.grow();
+        //     this.eatFood();
+        // }
+
+        // Check for collisions with walls
+        if (this.checkCollisionWithWalls()) {
+            this.handleWallCollision();
+        }
+
+        // // Check for collisions with other snakes
+        // if (this.checkCollisionWithSnakes()) {
+        //     this.handleSnakeCollision();
+        // }
+
+
+
+
     }
+
+
+    checkCollisionWithWalls() {
+        const head = this.body[0];
+        return (
+            head.x < 0 ||
+            head.x > 640 ||
+            head.y < 0 ||
+            head.y > 480
+        );
+    }
+
+
+    handleWallCollision() {
+
+        // Handle wall collision (e.g., reset position, end game, etc.)
+        console.log('Wall collision detected!');
+
+        this.gameover = true;
+
+        this.reset();
+
+    }
+
 
     // draw(ctx) {
     //     ctx.fillStyle = this.color;
@@ -253,6 +251,42 @@ class Snake {
     //         ctx.fill();
     //     }
     // }
+}
+
+
+function addOrUpdatePlayer(id, userid) {
+
+    var player = players.find(p => p.userid === userid);
+    if (player) {
+        // Update existing player
+        player.userid = userid;
+        player.lastUpdate = new Date();
+    } else {
+        // Add new player
+        players.push({ id, userid, lastUpdate: new Date() });
+    }
+
+}
+
+
+function getRandomSnake() {
+    return new Snake({
+        x: Math.floor(Math.random() * 640),
+        y: Math.floor(Math.random() * 480),
+        color: getRandomColor(),
+        length: 100,
+        radius: 5
+    });
+}
+
+
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
 }
 
 

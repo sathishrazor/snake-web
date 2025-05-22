@@ -7,6 +7,7 @@
 import io from 'socket.io-client';
 import { authState } from '../authState';
 import { ref } from "vue";
+import { ElMessageBox } from 'element-plus';
 export default {
     name: 'GameBoard',
     async data() {
@@ -24,17 +25,18 @@ export default {
         };
     },
     created() {
+
+
         // Connect to Socket.IO server
-        this.socket = io('http://localhost:3000', {
-            transports: ['websocket'],
-            auth: {
-                token: this.user.token
-            }
-        });
+        this.socket = io('http://localhost:3000');
+
         this.socket.on('connect', () => {
-            console.log('Connected to server');
+
+            console.log('Connected to server', this);
+
+            var data = authState.getUser();
             // Optionally emit an event to join a game or send user info
-            this.socket.emit('joinGame', { userId: this.user.id });
+            this.socket.emit('joingame', { userId: data.userId });
         });
 
         this.socket.on('disconnect', () => {
@@ -70,9 +72,30 @@ export default {
             this.gameState = state;
             this.drawGame();
         });
+
+
+        this.socket.on('gameover', (state) => {
+
+            console.log("gameover", state);
+
+            ElMessageBox.confirm('Game Over! You have been eliminated. Do you want to play again?', 'Game Over', {
+                confirmButtonText: 'Play Again',
+                cancelButtonText: 'Exit',
+                type: 'warning'
+            }).then(() => {
+                // Handle play again logic
+                this.socket.emit('joingame', { userId: this.user.userId });
+            }).catch(() => {
+
+            });
+
+        });
+
         // Optionally handle game start, player ID, etc.
     },
     methods: {
+
+
         // Draw the game using canvas 2D context
         drawGame() {
             const ctx = this.context;
@@ -84,11 +107,13 @@ export default {
 
             for (var key in this.gameState.snakes) {
                 var snake = this.gameState.snakes[key];
+
+                draw(ctx, snake);
                 // console.log("snake", snake);
-                ctx.fillStyle = snake.color;
-                snake.body.forEach(cell => {
-                    ctx.fillRect(cell.x, cell.y, 10, 10);
-                });
+                // ctx.fillStyle = snake.color;
+                // snake.body.forEach(cell => {
+                //     ctx.fillRect(cell.x, cell.y, 10, 10);
+                // });
 
             }
 
@@ -97,6 +122,8 @@ export default {
 
 
         mouseMove(e) {
+
+            var user = authState.getUser();
 
             const rect = this.$refs.game.getBoundingClientRect();
 
@@ -110,9 +137,9 @@ export default {
             if (this.lastMousePos) {
                 const direction = getMouseDirection(this.lastMousePos, currentMousePos);
                 if (direction) {
-                    console.log("Mouse moved:", direction);
+                    console.log("Mouse moved:", { userId: user.userId, direction });
 
-                    this.socket.emit('move', direction);
+                    this.socket.emit('move', { userId: user.userId, direction });
                 }
             }
             this.lastMousePos = currentMousePos;
@@ -121,9 +148,7 @@ export default {
 
 };
 
-function handleMouseMove(e) {
 
-}
 
 
 function debounce(fn, delay) {
@@ -147,6 +172,15 @@ function getMouseDirection(start, end) {
         return dx > 0 ? 'right' : 'left';
     } else {
         return dy > 0 ? 'down' : 'up';
+    }
+}
+
+function draw(ctx, snake) {
+    ctx.fillStyle = snake.color;
+    for (const segment of snake.body) {
+        ctx.beginPath();
+        ctx.arc(segment.x, segment.y, snake.radius, 0, Math.PI * 2);
+        ctx.fill();
     }
 }
 
@@ -183,20 +217,7 @@ function getRandomSnake() {
         radius: 5
     });
 }
-function getRandomSnakes(count) {
-    const snakes = [];
-    for (let i = 0; i < count; i++) {
-        snakes.push(getRandomSnake());
-    }
-    return snakes;
-}
-function getRandomFoodItems(count) {
-    const foodItems = [];
-    for (let i = 0; i < count; i++) {
-        foodItems.push(getRandomFood());
-    }
-    return foodItems;
-}
+
 
 
 
